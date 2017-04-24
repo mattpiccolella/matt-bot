@@ -1,0 +1,6 @@
+venv/
+result.csv
+*.db
+*.db-*
+data/*.txt
+.open
