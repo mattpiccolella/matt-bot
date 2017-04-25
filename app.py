@@ -17,7 +17,7 @@ def generate_bot_response(sender_id, message_text):
         database='heroku_vzt7md78',
         database_uri='mongodb://matt:buddymatt123@ds119151.mlab.com:19151/heroku_vzt7md78')
     response = chatbot.get_response(message_text)
-    send_message(sender_id, response)
+    send_message(sender_id, response.text)
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -30,7 +30,7 @@ def verify():
             return "Verification token mismatch", 403
         return request.args["hub.challenge"], 200
 
-    return "Hello world", 200
+    return "Hello World", 200
 
 
 @app.route('/', methods=['POST'])
@@ -45,7 +45,6 @@ def webhook():
                     sender_id = messaging_event["sender"]["id"]        # The Facebook ID of the person sending you the message.
                     recipient_id = messaging_event["recipient"]["id"]  # The Facebook ID of our page.
                     message_text = messaging_event["message"]["text"]  # The message's text.
-                    log('Sending message...')
                     pool = Pool(processes=1) # Start a worker progress to get our chatbot output.
                     result = pool.apply_async(generate_bot_response, args=(sender_id,message_text)) # Asynchronous function to find response from chatbot.
 
@@ -60,8 +59,6 @@ def webhook():
 
 
 def send_message(recipient_id, message_text):
-    log("sending message to {recipient}: {text}".format(recipient=recipient_id, text=message_text))
-
     params = {
         "access_token": os.environ["PAGE_ACCESS_TOKEN"]
     }
@@ -78,8 +75,8 @@ def send_message(recipient_id, message_text):
     })
     result = requests.post("https://graph.facebook.com/v2.6/me/messages", params=params, headers=headers, data=data)
     if result.status_code != 200:
-        log(r.status_code)
-        log(r.text)
+        log(result.status_code)
+        log(result.text)
 
 
 def log(message):  # simple wrapper for logging to stdout on heroku
