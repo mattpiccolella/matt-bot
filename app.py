@@ -48,7 +48,7 @@ def webhook():
                     sender_id = messaging_event["sender"]["id"]        # The Facebook ID of the person sending you the message.
                     recipient_id = messaging_event["recipient"]["id"]  # The Facebook ID of our page.
                     message_text = messaging_event["message"]["text"]  # The message's text.
-                    generate_bot_response, args=(sender_id,message_text))
+                    generate_bot_response(sender_id,message_text)
                     """pool = Pool(processes=1) # Start a worker progress to get our chatbot output.
                     log("Received message " + message_text + " from " + str(sender_id))
                     result = pool.apply_async(generate_bot_response, args=(sender_id,message_text)) # Asynchronous function to find response from chatbot.
