@@ -12,7 +12,8 @@ CONVO_LIMIT = 500
 def train_chatbot_from_file(input_data_file):
     chatbot = ChatBot("Matt Bot",
         storage_adapter='chatterbot.storage.MongoDatabaseAdapter',
-        database='matt-bot')
+        database='heroku_vzt7md78',
+        database_uri='mongodb://matt:buddymatt123@ds119151.mlab.com:19151/heroku_vzt7md78')
     chatbot.set_trainer(ListTrainer)
 
     # Generate the conversations from our data.

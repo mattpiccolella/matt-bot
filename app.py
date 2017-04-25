@@ -2,12 +2,15 @@ import os
 import sys
 import json
 
-import requests
+import requests, time
 from flask import Flask, request
+import train_bot
 
 app = Flask(__name__)
+chatbot = None
 
 RANDOM_STRING = 'BrMtyyEe5Rqvh1kF0fMo'
+INPUT_DATA_FILE = 'data/result.csv'
 
 
 @app.route('/', methods=['GET'])
@@ -42,7 +45,7 @@ def webhook():
                     sender_id = messaging_event["sender"]["id"]        # the facebook ID of the person sending you the message
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"]["text"]  # the message's text
-
+                    time.sleep(10)
                     send_message(sender_id, "roger that!")
 
                 if messaging_event.get("delivery"):  # delivery confirmation
@@ -87,4 +90,5 @@ def log(message):  # simple wrapper for logging to stdout on heroku
 
 
 if __name__ == '__main__':
+    chatbot = train_bot.train_chatbot_from_file(INPUT_DATA_FILE)
     app.run(debug=True)
