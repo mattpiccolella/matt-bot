@@ -2,20 +2,22 @@ import os, sys, json
 
 import requests, time
 from flask import Flask, request
-import train_bot
+from chatterbot import ChatBot
 
 from multiprocessing import Pool
 
 app = Flask(__name__)
-chatbot = None
 
 RANDOM_STRING = 'BrMtyyEe5Rqvh1kF0fMo'
 INPUT_DATA_FILE = 'data/result.csv'
 
 def generate_bot_response(sender_id, message_text):
-    # TODO: Call chatbot.
-    time.sleep(5)
-    send_message(sender_id, message_text)
+    chatbot = ChatBot("Matt Bot",
+        storage_adapter='chatterbot.storage.MongoDatabaseAdapter',
+        database='heroku_vzt7md78',
+        database_uri='mongodb://matt:buddymatt123@ds119151.mlab.com:19151/heroku_vzt7md78')
+    response = chatbot.get_response(message_text)
+    send_message(sender_id, response)
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -33,39 +35,31 @@ def verify():
 
 @app.route('/', methods=['POST'])
 def webhook():
-
-    # endpoint for processing incoming messaging events
-
+    # Endpoint for processing incoming messaging events from Messenger users.
     data = request.get_json()
-    log(data)  # you may not want to log every incoming message in production, but it's good for testing
 
     if data["object"] == "page":
-
         for entry in data["entry"]:
             for messaging_event in entry["messaging"]:
+                if messaging_event.get("message"):
+                    sender_id = messaging_event["sender"]["id"]        # The Facebook ID of the person sending you the message.
+                    recipient_id = messaging_event["recipient"]["id"]  # The Facebook ID of our page.
+                    message_text = messaging_event["message"]["text"]  # The message's text.
+                    log('Sending message...')
+                    pool = Pool(processes=1) # Start a worker progress to get our chatbot output.
+                    result = pool.apply_async(generate_bot_response, args=(sender_id,message_text)) # Asynchronous function to find response from chatbot.
 
-                if messaging_event.get("message"):  # someone sent us a message
-
-                    sender_id = messaging_event["sender"]["id"]        # the facebook ID of the person sending you the message
-                    recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
-                    message_text = messaging_event["message"]["text"]  # the message's text
-                    pool = Pool(processes=1)              # Start a worker processes.
-                    result = pool.apply_async(generate_bot_response, args=(sender_id,message_text)) # Asynchronous function to find response from chatbot
-
-                if messaging_event.get("delivery"):  # delivery confirmation
+                if messaging_event.get("delivery"):  # Delivery Confirmation.
+                    pass
+                if messaging_event.get("optin"):  # Opt-in Confirmation.
+                    pass
+                if messaging_event.get("postback"):  # User clicked/tapped "postback" button in earlier message.
                     pass
 
-                if messaging_event.get("optin"):  # optin confirmation
-                    pass
-
-                if messaging_event.get("postback"):  # user clicked/tapped "postback" button in earlier message
-                    pass
-
-    return "ok", 200
+    return "OK", 200
 
 
 def send_message(recipient_id, message_text):
-
     log("sending message to {recipient}: {text}".format(recipient=recipient_id, text=message_text))
 
     params = {
@@ -82,8 +76,8 @@ def send_message(recipient_id, message_text):
             "text": message_text
         }
     })
-    r = requests.post("https://graph.facebook.com/v2.6/me/messages", params=params, headers=headers, data=data)
-    if r.status_code != 200:
+    result = requests.post("https://graph.facebook.com/v2.6/me/messages", params=params, headers=headers, data=data)
+    if result.status_code != 200:
         log(r.status_code)
         log(r.text)
 
@@ -94,5 +88,4 @@ def log(message):  # simple wrapper for logging to stdout on heroku
 
 
 if __name__ == '__main__':
-    #chatbot = train_bot.train_chatbot_from_file(INPUT_DATA_FILE)
     app.run(debug=True)

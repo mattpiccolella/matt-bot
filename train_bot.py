@@ -28,9 +28,9 @@ def train_chatbot_from_file(input_data_file):
     return chatbot
 
 if __name__ == '__main__':
+    print 'STARTING TRAINING'
     chatbot = train_chatbot_from_file(INPUT_DATA_FILE)
-
-    pdb.set_trace()
+    print 'FINISHING TRAINING'
 
     print 'How are you?'
     print chatbot.get_response('How are you')
