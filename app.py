@@ -17,7 +17,7 @@ def generate_bot_response(sender_id, message_text):
         database='heroku_vzt7md78',
         database_uri='mongodb://matt:buddymatt123@ds119151.mlab.com:19151/heroku_vzt7md78')
     response = chatbot.get_response(message_text)
-    log("Sending message " + response + " to " + str(sender_id))
+    log("Sending message " + response.text + " to " + str(sender_id))
     send_message(sender_id, response.text)
 
 @app.route('/', methods=['GET'])
