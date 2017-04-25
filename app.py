@@ -7,6 +7,8 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
+RANDOM_STRING = 'BrMtyyEe5Rqvh1kF0fMo'
+
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -14,6 +16,8 @@ def verify():
     # the 'hub.challenge' value it receives in the query arguments
     if request.args.get("hub.mode") == "subscribe" and request.args.get("hub.challenge"):
         if not request.args.get("hub.verify_token") == os.environ["VERIFY_TOKEN"]:
+            print os.environ["VERIFY_TOKEN"]
+            print request.args.get("hub.verify_token")
             return "Verification token mismatch", 403
         return request.args["hub.challenge"], 200
 
