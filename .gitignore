@@ -4,3 +4,4 @@ result.csv
 *.db-*
 data/*.txt
 .open
+*.pyc

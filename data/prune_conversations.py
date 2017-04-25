@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
-import csv, sys, pdb
+import sys
+
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+import csv, pdb
 from collections import defaultdict
+from dateutil import parser
 
 def message_row_to_dict(row):
     KEYS = ['message_id','conversation_id','date','sent_received','number','text']
@@ -12,13 +18,12 @@ def group_messages_to_conversations(messages):
         conversations[message['conversation_id']].append(message)
     return conversations
 
-def prune_conversations(conversations):
+def iterate_and_prune_conversations(conversations):
+    pruned_conversations = []
     for conversation_id,conversation in conversations.iteritems():
         # Filter out short conversations, likely from brands.
         if len(conversation) <= 2:
             continue
-
-        print 'NEW CONVERSATION'
 
         current_text = ''
         has_started = False
@@ -37,7 +42,8 @@ def prune_conversations(conversations):
                 conversation_chat.append(current_text)
                 current_text = ''
             else:
-                pdb.set_trace()
+                # Might want to think about whether we include conversations that have long time gaps between them.
+
                 if len(curr_message['text']) == 0:
                     continue
 
@@ -50,15 +56,31 @@ def prune_conversations(conversations):
         if current_text != '':
             conversation_chat.append(current_text)
 
-        print conversation_chat
+        if len(conversation_chat) > 1:
+            pruned_conversations.append(conversation_chat)
 
-if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        sys.exit('Please include input and output file names.')
+    return pruned_conversations
 
-    reader = csv.reader(open(sys.argv[1], 'r'))
+def prune_conversations(input_file):
+    reader = csv.reader(open(input_file, 'r'))
     input_messages = [message_row_to_dict(row) for row in reader]
 
     conversations = group_messages_to_conversations(input_messages)
 
-    prune_conversations(conversations)
+    pruned_conversations = iterate_and_prune_conversations(conversations)
+
+    return pruned_conversations
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        sys.exit('Please include an input file name.')
+
+    pruned_conversations = prune_conversations(sys.argv[1])
+
+    for conversation in pruned_conversations:
+        print 'NEW CONVERSATION'
+        for message in conversation:
+            print message
+
+        print ''
