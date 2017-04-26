@@ -16,10 +16,10 @@ def generate_bot_response(sender_id, message_text):
         storage_adapter='chatterbot.storage.MongoDatabaseAdapter',
         database='heroku_vzt7md78',
         database_uri='mongodb://matt:buddymatt123@ds119151.mlab.com:19151/heroku_vzt7md78')
+    log("Starting to get response")
     response = chatbot.get_response(message_text)
     log("Sending message " + response.text + " to " + str(sender_id))
     send_message(sender_id, response.text)
-    del chatbot
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -39,7 +39,6 @@ def verify():
 def webhook():
     # Endpoint for processing incoming messaging events from Messenger users.
     data = request.get_json()
-    log(data)
 
     if data["object"] == "page":
         for entry in data["entry"]:
@@ -48,19 +47,9 @@ def webhook():
                     sender_id = messaging_event["sender"]["id"]        # The Facebook ID of the person sending you the message.
                     recipient_id = messaging_event["recipient"]["id"]  # The Facebook ID of our page.
                     message_text = messaging_event["message"]["text"]  # The message's text.
+                    pool = Pool(processes=1) # Start a worker progress to get our chatbot output.
                     log("Received message " + message_text + " from " + str(sender_id))
-                    log("Starting to get response")
-                    #pool = Pool(processes=1)
-                    #result = pool.apply_async(generate_bot_response, args=(sender_id,message_text)) # Asynchronous function to find 
-                    #response from chatbot.
-                    chatbot = ChatBot("Matt Bot",
-                                storage_adapter='chatterbot.storage.MongoDatabaseAdapter',
-                                database='heroku_vzt7md78',
-                                database_uri='mongodb://matt:buddymatt123@ds119151.mlab.com:19151/heroku_vzt7md78')
-                    response = chatbot.get_response(message_text)
-                    log("Sending message " + response.text + " to " + str(sender_id))
-                    send_message(sender_id, response.text)
-                    del chatbot
+                    result = pool.apply_async(generate_bot_response, args=(sender_id,message_text)) # Asynchronous function to find response from chatbot.
 
                 if messaging_event.get("delivery"):  # Delivery Confirmation.
                     pass
