@@ -11,7 +11,10 @@ app = Flask(__name__)
 RANDOM_STRING = 'BrMtyyEe5Rqvh1kF0fMo'
 INPUT_DATA_FILE = 'data/result.csv'
 
-chatbot = None
+chatbot = ChatBot("Matt Bot",
+        storage_adapter='chatterbot.storage.MongoDatabaseAdapter',
+        database='heroku_vzt7md78',
+        database_uri='mongodb://matt:buddymatt123@ds119151.mlab.com:19151/heroku_vzt7md78')
 
 def generate_bot_response(sender_id, message_text):
     response = chatbot.get_response(message_text)
@@ -89,8 +92,4 @@ def log(message):  # simple wrapper for logging to stdout on heroku
 
 
 if __name__ == '__main__':
-    chatbot = ChatBot("Matt Bot",
-        storage_adapter='chatterbot.storage.MongoDatabaseAdapter',
-        database='heroku_vzt7md78',
-        database_uri='mongodb://matt:buddymatt123@ds119151.mlab.com:19151/heroku_vzt7md78')
     app.run(debug=True)
