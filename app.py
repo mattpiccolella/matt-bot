@@ -17,9 +17,14 @@ chatbot = ChatBot("Matt Bot",
         database_uri='mongodb://matt:buddymatt123@ds119151.mlab.com:19151/heroku_vzt7md78')
 
 def generate_bot_response(sender_id, message_text):
+    chatbot = ChatBot("Matt Bot",
+        storage_adapter='chatterbot.storage.MongoDatabaseAdapter',
+        database='heroku_vzt7md78',
+        database_uri='mongodb://matt:buddymatt123@ds119151.mlab.com:19151/heroku_vzt7md78')
     response = chatbot.get_response(message_text)
     log("Sending message " + response.text + " to " + str(sender_id))
     send_message(sender_id, response.text)
+    del chatbot
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -49,11 +54,9 @@ def webhook():
                     message_text = messaging_event["message"]["text"]  # The message's text.
                     log("Received message " + message_text + " from " + str(sender_id))
                     log("Starting to get response")
-                    response = chatbot.get_response(message_text)
-                    #result = pool.apply_async(generate_bot_response, args=(sender_id,message_text)) # Asynchronous function to find 
+                    pool = Pool(processes=1)
+                    result = pool.apply_async(generate_bot_response, args=(sender_id,message_text)) # Asynchronous function to find 
                     #response from chatbot.
-                    log("Sending message " + response.text + " to " + str(sender_id))
-                    send_message(sender_id, response.text)
 
                 if messaging_event.get("delivery"):  # Delivery Confirmation.
                     pass
