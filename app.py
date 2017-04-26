@@ -39,6 +39,7 @@ def verify():
 def webhook():
     # Endpoint for processing incoming messaging events from Messenger users.
     data = request.get_json()
+    log(data)
 
     if data["object"] == "page":
         for entry in data["entry"]:
