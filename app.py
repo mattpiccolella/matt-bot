@@ -4,7 +4,8 @@ import requests, time
 from flask import Flask, request
 from chatterbot import ChatBot
 
-from multiprocessing import Pool, util
+from multiprocessing import util
+from multiprocessing.pool import ThreadPool
 
 app = Flask(__name__)
 
@@ -21,8 +22,7 @@ def generate_bot_response(sender_id, message_text):
     log("Sending message " + response.text + " to " + str(sender_id))
     send_message(sender_id, response.text)
 
-pool = Pool(processes=2)
-util.get_logger().setLevel(util.DEBUG)
+pool = ThreadPool(2)
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -51,7 +51,7 @@ def webhook():
                     sender_id = messaging_event["sender"]["id"]        # The Facebook ID of the person sending you the message.
                     recipient_id = messaging_event["recipient"]["id"]  # The Facebook ID of our page.
                     message_text = messaging_event["message"]["text"]  # The message's text.
-                    log('Applying now')
+                    log('Received message ' + message_text + ' from ' + str(sender_id))
                     result = pool.apply_async(generate_bot_response, args=(sender_id,message_text)) # Asynchronous function to find response from chatbot.
 
                 if messaging_event.get("delivery"):  # Delivery Confirmation.
